@@ -1,0 +1,36 @@
+{
+  "name": "react-todo",
+  "version": "0.1.0",
+  "private": true,
+  "main": "public/main.js",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "bootstrap": "^4.3.1",
+    "d3": "^5.9.2",
+    "electron": "^4.0.8",
+    "express": "^4.16.4",
+    "jquery": "^3.3.1",
+    "lodash": "^4.17.11",
+    "mongoose": "^5.4.19",
+    "npm": "^6.9.0",
+    "popper": "^1.0.1",
+    "popper.js": "^1.14.7",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4",
+    "react-scripts": "^2.1.8"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "electron-start": "electron ."
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

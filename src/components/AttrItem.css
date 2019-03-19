@@ -1,0 +1,13 @@
+.card-att {
+  background: rgba(255, 255, 255, 0.5);
+  width: calc(100% - 6px);
+  margin: 3px;
+}
+
+.grid-item {
+  float: left;
+}
+
+.active-attr {
+  background: rgba(255, 255, 255, 0.85);
+}
