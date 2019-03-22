@@ -96,5 +96,15 @@ router.get("/getByLemma/:lemma", (req, res) => {
 // append /api for our http requests
 app.use("/api", router);
 
+// for react app
+if(process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendfile(path.join(__dirname = 'build/index.html'));
+  })
+}
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname+'public/index.html'));
+})
+
 // launch our backend into a port
 app.listen(API_PORT, () => console.log(`LISTENING ON PORT ${API_PORT}`));
