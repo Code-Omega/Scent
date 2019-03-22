@@ -199,10 +199,10 @@ class MainView extends Component {
                                 onclickfn = {this.getByLemma}
                                 name = {item.lemma}
                                 item=<span>
-                                        <span className="badge badge-light">{item.count}</span>
+                                        <span className="badge badge-light font-weight-normal">{item.count}</span>
                                         <span className="text-white">/</span>
-                                        <span className="badge badge-light">{item.nunique}</span>
-                                          {item.lemma}
+                                        <span className="badge badge-light font-weight-normal">{item.nunique}</span>
+                                        <span> {item.lemma}</span>
                                      </span>
                                 deleteItem={this.deleteItem.bind(this, key)}
                             />
