@@ -10,4 +10,12 @@ const ReviewSchema = new Schema(
   { collection : 'reviews' }
 );
 
+ReviewSchema.set('toJSON', {
+    virtuals: true
+});
+
+ReviewSchema.set('toObject', {
+    virtuals: true
+});
+
 module.exports = mongoose.model("review", ReviewSchema);

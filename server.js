@@ -6,7 +6,7 @@ const Review = require("./schemas/review");
 const Post = require("./schemas/post");
 const Token = require("./schemas/token");
 
-const API_PORT = 3001;
+const API_PORT = process.env.PORT || 3001;
 const app = express();
 const router = express.Router();
 
@@ -62,7 +62,7 @@ router.get("/getByLemma/:lemma", (req, res) => {
     // console.log(review_ids);
     // console.log(post_ids);
     // return res.json({ success: true, data: data });
-    Review.find({'id': {$in: review_ids}}, (err, review_data) => {
+    Review.find({'_id': {$in: review_ids}}, (err, review_data) => {
       if (err) return res.json({ success: false, error: err });
       Post.find({'id': {$in: post_ids}}, (err, post_data) => {
         if (err) return res.json({ success: false, error: err });

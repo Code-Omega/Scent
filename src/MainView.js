@@ -24,7 +24,7 @@ class MainView extends Component {
   };
 
   getNoun = () => {
-    fetch("http://localhost:3001/api/getNoun")
+    fetch("/api/getNoun")
       .then(data => data.json())
       .then(res => this.setState({ attribute_list: res.data }));
   };
@@ -32,27 +32,18 @@ class MainView extends Component {
   testing = () => {
     const sn_posts = [...this.state.filtered_posts.map((item, key) => ({
                           name: item.name,
-                          niches: [item.name.substring(0,1).toUpperCase(),item.name.substring(1,2).toUpperCase()],
+                          niches: [...new Set(item.tagline.toLowerCase().split(" "))],
                           id: item.id
                         }))
                       ]
-    const res = _.reduce(sn_posts, function(result, post){
-      return _.reduce(post.niches, function(acc, category){
-        (acc[category] || (acc[category] = [])).push(post);
+    const niches = _.reduce(sn_posts, function(result, post){
+      return _.reduce(post.niches, function(acc, niche){
+        (acc[niche] || (acc[niche] = [])).push({id:post.id, niche:niche});
         return acc;
       }, result);
     }, {});
-    console.log(sn_posts);
-    console.log(res);
-    // console.log([...niches.map((group, key) => ({
-    //                 ...group.map((item, key) => ({
-    //                   source: item.id,
-    //                   target: item.id,
-    //                   type: "niche",
-    //                   id: key
-    //                 }))
-    //               }))
-    //             ]);
+    const niches_with_1_plus = _.pickBy(niches, function(x) { return x.length>1; });
+    console.log(niches_with_1_plus);
   };
 
   getByLemma = (lemma) => {
@@ -91,19 +82,19 @@ class MainView extends Component {
   };
 
   createGraphComponents = () => {
-    const sudoniche = [...this.state.filtered_posts.map((item, key) => ({
+    const sn_posts = [...this.state.filtered_posts.map((item, key) => ({
                           name: item.name,
-                          niche: item.name.substring(0,1).toUpperCase(),
-                          id: item.id
-                        })),
-                        ...this.state.filtered_posts.map((item, key) => ({
-                          name: item.name,
-                          niche: item.name.substring(1,2).toUpperCase(),
+                          niches: [...new Set(item.niches)],
                           id: item.id
                         }))
                       ]
-    const niches = _.groupBy(sudoniche,"niche")
-    const niches_with_1_plus = _.pickBy(niches, function(x) { return x.length>1; })
+    const niches = _.reduce(sn_posts, function(result, post){
+      return _.reduce(post.niches, function(acc, niche){
+        (acc[niche] || (acc[niche] = [])).push({id:post.id, niche:niche});
+        return acc;
+      }, result);
+    }, {});
+    const niches_with_1_plus = _.pickBy(niches, function(x) { return x.length>1; });
     const niche_names = Object.keys(niches_with_1_plus).map((item, key) => ({name:item, id:item}));
     const niche_elems = _.flatten(Object.values(niches_with_1_plus));
     return {
@@ -111,21 +102,18 @@ class MainView extends Component {
                 name: '',
                 id: item.id,
                 type: "review "+item.opinion,
-                radius: 7,
                 text: "["+item.opinion+"] "+item.text
               })),
               ...this.state.filtered_posts.map((item, key) => ({
                 name: item.name.substring(0,1),
                 id: item.id,
                 type: "post",
-                radius: 18,
                 text: "["+item.name+"] - "+item.tagline
               })),
               ...niche_names.map((item, key) => ({
                 name: "",
                 id: item.id,
                 type: "niche",
-                radius: 0,
                 text: item.name
               }))
             ],
@@ -146,7 +134,7 @@ class MainView extends Component {
   };
 
   putDataToDB = message => {
-    axios.post("http://localhost:3001/api/putData", {
+    axios.post("/api/putData", {
       todo: "new todo"
     });
   };

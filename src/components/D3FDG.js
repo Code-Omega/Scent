@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom'
-import _ from 'lodash';
+// import _ from 'lodash';
 import * as d3 from "d3";
 import './D3FDG.css';
 
@@ -13,6 +13,10 @@ const
   text_x_off = 0, //radius/2 + 1,
   text_y_off = 0, //font_size + text_x_off,
   color = d3.scaleOrdinal(d3.schemeSet2),
+  node_radius = {'post': 18, 'review pro': 7, 'review con':7, 'niche': 12},
+  link_distance = {'review': 30, 'niche': 0},
+  link_strength = {'review': 0.5, 'niche': 0.3},
+  link_weight = {'review': 1, 'niche': 1},
 
   tooltip = d3.select("body")
     .append("div")
@@ -28,10 +32,13 @@ const
     nsp.links = links;
     nsp.force = d3.forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(-50))
-      .force("link", d3.forceLink(links).id((d) => d.id).distance((d) => nsp.fld[d.type]).strength((d) => nsp.fls[d.type]))
+      .force("link", d3.forceLink(links).id((d) => d.id).distance((d) => nsp.link_distance[d.type]).strength((d) => nsp.link_strength[d.type]))
       .force("center", d3.forceCenter().x(nsp.width/2).y(nsp.height/2))
-      .force("collide", d3.forceCollide((d) => d.radius).iterations([5]))
-      .force('r', d3.forceRadial().radius((d) => nsp.frr[d.type]).x(nsp.width/2).y(nsp.height/2).strength((d) => nsp.frs[d.type]));
+      .force("collide", d3.forceCollide((d) => nsp.node_radius[d.type]).iterations([5]))
+      .force('r', d3.forceRadial().radius((d) => nsp.fr_radius[d.type]).x(nsp.width/2).y(nsp.height/2).strength((d) => nsp.fr_strength[d.type]));
+    hideNiche();
+    showReviews();
+    organizeByReview();
   },
 
   // updateForce = (nodes, links) => {
@@ -44,7 +51,7 @@ const
 
   enterNode = (selection) => {
     selection.select('circle')
-      .attr("r", function(d) { return d.radius; })
+      .attr("r", (d) => nsp.node_radius[d.type])
       .style("fill", function(d) { return color(d.type); })
       .style("stroke", "bisque")
       .style("stroke-width", "0px")
@@ -68,11 +75,11 @@ const
 
   updateNode = (selection) => {
     selection
-      .attr("cx", function(d) { return d.x = Math.max(d.radius, Math.min(width - d.radius, d.x)); })
-      .attr("cy", function(d) { return d.y = Math.max(d.radius, Math.min(nsp.height - d.radius, d.y)); })
+      .attr("cx", function(d) { return d.x = Math.max(nsp.node_radius[d.type], Math.min(width - nsp.node_radius[d.type], d.x)); })
+      .attr("cy", function(d) { return d.y = Math.max(nsp.node_radius[d.type], Math.min(nsp.height - nsp.node_radius[d.type], d.y)); })
       .attr("transform", (d) => "translate(" + (d.x ? d.x : 0) + "," + (d.y ? d.y : 0) + ")")
       .select('circle')
-        .attr("r", function(d) { return d.radius; })
+        .attr("r", (d) => nsp.node_radius[d.type])
       // .select('text')
       //   .attr("x", function(d) { return (d.x ? Math.min(text_x_off, Math.max(-1*d.name.length*font_size, width - d.x - d.name.length*font_size/2)) : 0); })
       //   .attr("y", function(d) { return (d.y ? Math.min(text_y_off, Math.max(-1*text_y_off, nsp.height - d.y - font_size/3)) : 0); })
@@ -85,7 +92,7 @@ const
 
   updateLink = (selection) => {
     selection
-      .attr("stroke-width", (d) => nsp.flw[d.type])
+      .attr("stroke-width", (d) => nsp.link_weight[d.type])
       .attr("x1", (d) => d.source.x)
       .attr("y1", (d) => d.source.y)
       .attr("x2", (d) => d.target.x)
@@ -99,14 +106,53 @@ const
       .call(updateLink);
   },
 
-  toggleNiche = () => {
-    const idx = _.map(_.keys(_.pickBy(nsp.nodes, {type:"niche"})), Number);
-    idx.forEach((i)=>{
-      console.log(i+" "+nsp.nodes[i].radius);
-      nsp.nodes[i].radius = (nsp.nodes[i].radius!==0)?0:30;
-    });
-    nsp.force.force("collide").radius((d) => d.radius)
-    nsp.flw['niche'] = (nsp.flw['niche']!==0)?0:10;
+  hideNiche = () => {
+    nsp.node_radius['niche'] = 0;
+    nsp.force.force("collide").radius((d) => nsp.node_radius[d.type]);
+    nsp.link_weight['niche'] = 0;
+    nsp.link_strength['niche'] = 0;
+    nsp.force.force("link").strength((d) => nsp.link_strength[d.type]);
+    nsp.toggleNiche = showNiche;
+  },
+  showNiche = () => {
+    nsp.node_radius['niche'] = node_radius['niche'];
+    nsp.force.force("collide").radius((d) => nsp.node_radius[d.type]);
+    nsp.link_weight['niche'] = link_weight['niche'];
+    nsp.link_strength['niche'] = link_strength['niche'];
+    nsp.force.force("link").strength((d) => nsp.link_strength[d.type]);
+    nsp.toggleNiche = hideNiche;
+  },
+
+  hideReviews = () => {
+    nsp.node_radius['review pro'] = 0;
+    nsp.node_radius['review con'] = 0;
+    nsp.force.force("collide").radius((d) => nsp.node_radius[d.type]);
+    nsp.link_weight['review'] = 0;
+    nsp.link_strength['review'] = 0;
+    nsp.force.force("link").strength((d) => nsp.link_strength[d.type]);
+    nsp.toggleReviews = showReviews;
+  },
+  showReviews = () => {
+    nsp.node_radius['review pro'] = node_radius['review pro'];
+    nsp.node_radius['review con'] = node_radius['review con'];
+    nsp.force.force("collide").radius((d) => nsp.node_radius[d.type]);
+    nsp.link_weight['review'] = link_weight['review'];
+    nsp.link_strength['review'] = link_strength['review'];
+    nsp.force.force("link").strength((d) => nsp.link_strength[d.type]);
+    nsp.toggleReviews = hideReviews;
+  },
+
+  organizeByNiche = () => {
+    nsp.fr_radius = {'post': nsp.width/4, 'review pro': nsp.width/2, 'review con': nsp.width/2, 'niche': 0};
+    nsp.fr_strength = {'post': 1, 'review pro': 0.5, 'review con': 0.5, 'niche': 1};
+    nsp.force.force('r').radius((d) => nsp.fr_radius[d.type]).strength((d) => nsp.fr_strength[d.type]);
+    // nsp.link_strength['niche'] = 0.1;
+    // nsp.force.force("link").strength((d) => nsp.link_strength[d.type]);
+  },
+  organizeByReview = () => {
+    nsp.fr_radius = {'post': nsp.width/4, 'review pro': 0, 'review con': nsp.width/2, 'niche': nsp.width/4};
+    nsp.fr_strength = {'post': 1, 'review pro': 0.1, 'review con': 0.1, 'niche': 1};
+    nsp.force.force('r').radius((d) => nsp.fr_radius[d.type]).strength((d) => nsp.fr_strength[d.type]);
   },
 
   dragStarted = (d) => {
@@ -133,8 +179,8 @@ const
       .on("end", dragEnded)
   ),
 
-  updateTick = () => {
-    nsp.force.alpha(0.3).restart();
+  updateTick = (alpha) => {
+    nsp.force.alpha(alpha).restart();
   },
 
   tick = (that) => {
@@ -161,12 +207,13 @@ const
 
   nsp.updateTick = updateTick;
 
-  nsp.toggleNiche = toggleNiche;
-  nsp.frr = {'post': nsp.width/4, 'review pro': 0, 'review con': nsp.width/2, 'niche': nsp.width/4};
-  nsp.frs = {'post': 0.5, 'review pro': 0.1, 'review con': 0.1, 'niche': 0.5};
-  nsp.fld = {'review': 30, 'niche': 0};
-  nsp.fls = {'review': 0.5, 'niche': 0};
-  nsp.flw = {'review': 1, 'niche': 0};
+  nsp.organizeByNiche = organizeByNiche;
+  nsp.organizeByReview = organizeByReview;
+
+  nsp.node_radius = Object.assign({}, node_radius);
+  nsp.link_distance = Object.assign({}, link_distance);
+  nsp.link_strength = Object.assign({}, link_strength);
+  nsp.link_weight = Object.assign({}, link_weight);
 
   return nsp
 
@@ -180,8 +227,24 @@ class App extends Component {
 
     toggleNiche() {
       FORCE.toggleNiche()
-      FORCE.updateTick()
+      FORCE.updateTick(1)
     }
+
+    toggleReviews() {
+      FORCE.toggleReviews()
+      FORCE.updateTick(1)
+    }
+
+    organizeByReview() {
+      FORCE.organizeByReview()
+      FORCE.updateTick(1)
+    }
+
+    organizeByNiche() {
+      FORCE.organizeByNiche()
+      FORCE.updateTick(1)
+    }
+
 
     componentDidMount() {
         const data = this.props.state;
@@ -220,20 +283,25 @@ class App extends Component {
         return (
           <div className="graph__container">
             <div className="graph__control card py-1 px-2">
-              <span class="btn-group input-group-sm my-1">
-                <div class="input-group-prepend">
-                  <span class="input-group-text btn-group-tag">Toggle Elements</span>
+              <span className="btn-group input-group-sm my-1">
+                <div className="input-group-prepend">
+                  <span className="input-group-text border btn-group-tag">Toggle Elements</span>
                 </div>
-                <button className="btn btn-sm btn-warning" onClick={() => this.toggleNiche()}>Product Niche</button>
-                <button className="btn btn-sm btn-secondary disabled" >Pros-Cons</button>
+                <button className="btn btn-sm border-top-0 border-bottom-0 border-dark btn-warning" onClick={() => this.toggleNiche()}>
+                  Niches</button>
+                <button className="btn btn-sm border-top-0 border-bottom-0 border-right-0 border-dark btn-warning" onClick={() => this.toggleReviews()}>
+                  Reviews</button>
               </span>
-              <span class="btn-group input-group-sm my-1">
-                <div class="input-group-prepend">
-                  <span class="input-group-text btn-group-tag">Organize By</span>
+              <span className="btn-group input-group-sm my-1">
+                <div className="input-group-prepend">
+                  <span className="input-group-text border btn-group-tag">Organize By</span>
                 </div>
-                <button className="btn btn-sm btn-warning active" >Pros & Cons</button>
-                <button className="btn btn-sm btn-secondary disabled" >Niche</button>
-                <button className="btn btn-sm btn-secondary disabled" >Age</button>
+                <button className="btn btn-sm border-top-0 border-bottom-0 border-dark btn-warning" onClick={() => this.organizeByReview()}>
+                  Pros & Cons</button>
+                <button className="btn btn-sm border-top-0 border-bottom-0 border-dark btn-warning" onClick={() => this.organizeByNiche()}>
+                  Niche</button>
+                <button className="btn btn-sm border-top-0 border-bottom-0 border-right-0 border-dark btn-warning disabled" >
+                  Age</button>
               </span>
             </div>
             <svg className="graph" width={FORCE.width} height={FORCE.height}>

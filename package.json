@@ -1,8 +1,9 @@
 {
-  "name": "react-todo",
+  "name": "scent",
   "version": "0.1.0",
   "private": true,
   "main": "public/main.js",
+  "proxy": "http://localhost:3001",
   "dependencies": {
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
@@ -21,11 +22,13 @@
     "react-scripts": "^2.1.8"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "react-start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "electron-start": "electron ."
+    "electron-start": "electron .",
+    "start": "node server.js",
+    "heroku-postbuild": "cd client && yarn && yarn run build"
   },
   "browserslist": [
     ">0.2%",
