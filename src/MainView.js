@@ -57,7 +57,7 @@ class MainView extends Component {
       }
     }, () => {
       if (this.state.selected_attrs.has(lemma)) {
-        fetch("http://localhost:3001/api/getByLemma/"+lemma)
+        fetch("/api/getByLemma/"+lemma)
         .then(data => data.json())
         .then(res => this.setState(({ reviews, posts }) => ({
           reviews: {...reviews, [lemma] : res.data.reviews},
@@ -200,9 +200,9 @@ class MainView extends Component {
                                 name = {item.lemma}
                                 item=<span>
                                         <span className="badge badge-light">{item.count}</span>
-                                        <b className="text-white">/</b>
+                                        <span className="text-white">/</span>
                                         <span className="badge badge-light">{item.nunique}</span>
-                                        <b> {item.lemma}</b>
+                                          {item.lemma}
                                      </span>
                                 deleteItem={this.deleteItem.bind(this, key)}
                             />
