@@ -9,6 +9,7 @@ const Token = require("./schemas/token");
 const API_PORT = process.env.PORT || 3001;
 const app = express();
 const router = express.Router();
+const appRouter = express.Router();
 
 // this is our MongoDB database
 const dbRoute = 'mongodb://hunter:muppe7-popmYs-qochef@ds017205.mlab.com:17205/product_scent';
@@ -98,13 +99,15 @@ app.use("/api", router);
 
 // for react app
 if(process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
+  appRouter.get('*', (req, res) => {
     res.sendfile(path.join(__dirname = 'build/index.html'));
   })
+} else {
+  appRouter.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname+'public/index.html'));
+  })
 }
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname+'public/index.html'));
-})
+app.use("/", appRouter);
 
 // launch our backend into a port
 app.listen(API_PORT, () => console.log(`LISTENING ON PORT ${API_PORT}`));
